@@ -48,8 +48,19 @@ class Match(ndb.Model):
   scores = ndb.KeyProperty(kind=Score, repeated=True)
   winner = ndb.KeyProperty(kind=Member, required=True)
   runner_up = ndb.KeyProperty(kind=Member)
-  third = ndb.KeyProperty(kind=Member)
-  fourth = ndb.KeyProperty(kind=Member)
+  third_place = ndb.KeyProperty(kind=Member)
+  fourth_place = ndb.KeyProperty(kind=Member)
+  closest_pin_4th = ndb.KeyProperty(kind=Member)
+  drive_chip_5th = ndb.KeyProperty(kind=Member)
+  drive_chip_6th = ndb.KeyProperty(kind=Member)
+  closest_pin_9th = ndb.KeyProperty(kind=Member)
+  closest_pin_10th = ndb.KeyProperty(kind=Member)
+  closest_pin_16th = ndb.KeyProperty(kind=Member)
+  closest_pin_17th = ndb.KeyProperty(kind=Member)
+  longest_drive_0_18 = ndb.KeyProperty(kind=Member)
+  longest_drive_19plus = ndb.KeyProperty(kind=Member)
+  longest_drive_60over = ndb.KeyProperty(kind=Member)
+
 
   # Individual Hole Winners
 

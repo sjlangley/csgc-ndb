@@ -166,11 +166,16 @@ class AddMember(webapp2.RequestHandler):
       member_no = self.request.get('member_no' + str(i), default_value=0)
       phone_number1 = self.request.get('phone_number1' + str(i), default_value=None)
       phone_number2 = self.request.get('phone_number2' + str(i), default_value=None)
+      handicap = self.request.get('hc_' + str(i), default_value=None)
 
       if first_name and last_name:
-        member_list.append(Member(first_name=first_name, last_name=last_name,
+        member = Member(first_name=first_name, last_name=last_name,
             email=email, phone_number1=phone_number1,
-            phone_number2=phone_number2, member_no=member_no))
+            phone_number2=phone_number2, member_no=member_no)
+        if handicap:
+          member.initial_handicap = float(handicap)
+
+        member_list.append(member)
 
     member_keys = ndb.put_multi(member_list)
 
@@ -200,6 +205,7 @@ class ListMembers(webapp2.RequestHandler):
           member.phone_number1,
           member.phone_number2,
         ],
+        'last_match': _get_last_match_for_member(member.key),
       }
       if with_scores:
         member_data['scores'] = _get_scores_for_member(member.key)
@@ -262,6 +268,45 @@ class AddMatch(webapp2.RequestHandler):
     if match_result['winner']:
       match.winner = ndb.Key(urlsafe=match_result['winner'])
 
+    if match_result['runner_up']:
+      match.runner_up = ndb.Key(urlsafe=match_result['runner_up'])
+
+    if match_result['third_place']:
+      match.third_place = ndb.Key(urlsafe=match_result['third_place'])
+
+    if match_result['fourth_place']:
+      match.fourth_place = ndb.Key(urlsafe=match_result['fourth_place'])
+
+    if match_result['closest_pin_4th']:
+      match.closest_pin_4th = ndb.Key(urlsafe=match_result['closest_pin_4th'])
+
+    if match_result['drive_chip_5th']:
+      match.drive_chip_5th = ndb.Key(urlsafe=match_result['drive_chip_5th'])
+
+    if match_result['drive_chip_6th']:
+      match.drive_chip_6th = ndb.Key(urlsafe=match_result['drive_chip_6th'])
+
+    if match_result['closest_pin_9th']:
+      match.closest_pin_9th = ndb.Key(urlsafe=match_result['closest_pin_9th'])
+
+    if match_result['closest_pin_10th']:
+      match.closest_pin_10th = ndb.Key(urlsafe=match_result['closest_pin_10th'])
+
+    if match_result['closest_pin_16th']:
+      match.closest_pin_16th = ndb.Key(urlsafe=match_result['closest_pin_16th'])
+
+    if match_result['closest_pin_17th']:
+      match.closest_pin_10th = ndb.Key(urlsafe=match_result['closest_pin_17th'])
+
+    if match_result['longest_drive_0_18']:
+      match.longest_drive_0_18 = ndb.Key(urlsafe=match_result['longest_drive_0_18'])
+
+    if match_result['longest_drive_19plus']:
+      match.longest_drive_19plus = ndb.Key(urlsafe=match_result['longest_drive_19plus'])
+
+    if match_result['longest_drive_60over']:
+      match.longest_drive_60over = ndb.Key(urlsafe=match_result['longest_drive_60over'])
+
     match.put()
 
     self.redirect('/show-match-result?match_key=%s' % match.key.urlsafe())
@@ -274,7 +319,7 @@ class AddMatch(webapp2.RequestHandler):
       'winner': self.request.get('winner'),
       'runner_up': self.request.get('runner_up'),
       'third_place': self.request.get('third_place'),
-      'forth_place': self.request.get('forth_place'),
+      'fourth_place': self.request.get('fourth_place'),
       'closest_pin_4th': self.request.get('closest_pin_4th'),
       'drive_chip_5th': self.request.get('drive_chip_5th'),
       'drive_chip_6th': self.request.get('drive_chip_6th'),
@@ -333,6 +378,7 @@ class GetMatch(webapp2.RequestHandler):
 
     result = {
       'date': match.date.strftime('%Y-%m-%d'),
+      'score_count': len(match.scores),
       'tee': {
         'name': tee['name'],
         'par': tee['par'],
@@ -348,8 +394,9 @@ class GetMatch(webapp2.RequestHandler):
         'points': score.points,
         'handicap': score.handicap,
       })
-      result['scores'] = score_data
-      return result
+
+    result['scores'] = score_data
+    return result
 
   def _return_match_summaries(self):
 
@@ -405,6 +452,18 @@ def _get_member_by_key(member_key):
     'first_name': member.first_name,
     'last_name': member.last_name,
   }
+
+def _get_last_match_for_member(member_key):
+  score = Score.query(Score.member == member_key).order(-Score.date).fetch(1)
+
+  if score:
+    return {
+      'date': score[0].date.strftime('%Y-%m-%d'),
+      'handicap': score[0].handicap,
+      'scratch': score[0].scratch,
+      'nett': score[0].nett,
+      'points': score[0].points,
+    }
 
 
 app = webapp2.WSGIApplication([

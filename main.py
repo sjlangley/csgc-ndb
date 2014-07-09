@@ -105,7 +105,7 @@ class ListMembers(webapp2.RequestHandler):
     data = json.loads(result.content)
 
     template_values = _get_standard_template_properties(self.request)
-    template_values['member_list'] = data
+    template_values['member_list'] = sorted(data, key=itemgetter('last_name'))
     template_values['show_pii'] = True
 
     template = JINJA_ENVIRONMENT.get_template('list_members.html')
@@ -150,7 +150,7 @@ class AddMatchResult(webapp2.RequestHandler):
     club_data = json.loads(result.content)
 
     template_values = _get_standard_template_properties(self.request)
-    template_values['member_data'] = member_data
+    template_values['member_data'] = sorted(member_data, key=itemgetter('last_name'))
     template_values['club_name'] = club_data[0]['name']
     template_values['course_data'] = club_data[0]['courses']
     template_values['max_player_results'] = 26
