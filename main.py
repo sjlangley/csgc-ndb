@@ -183,7 +183,15 @@ class ShowMatchResult(webapp2.RequestHandler):
     self.response.write(template.render(template_values))
 
   def _show_brief_match_results(self):
-    pass
+    url = '%s/api/get-match' % self.request.host_url
+    result = urlfetch.fetch(url, follow_redirects=False)
+    match_data = json.loads(result.content)
+
+    template_values = _get_standard_template_properties(self.request)
+    template_values['matches'] = match_data
+    template = JINJA_ENVIRONMENT.get_template('brief_match_results.html')
+    self.response.write(template.render(template_values))
+
 
 class ShowFailure(webapp2.RequestHandler):
   """Show a generic failure message."""
@@ -225,7 +233,7 @@ def _get_standard_template_properties(request):
     'add_members_url': '%s/add-members' % base,
     'list_member_admin_url': '%s/list-members-admin' % base,
     'add_match_result_url': '%s/add-match-result' % base,
-    'admin_user': True,
+    'admin_user': users.is_current_user_admin(),
   }
 
   return template_values

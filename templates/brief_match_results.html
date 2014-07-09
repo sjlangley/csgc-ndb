@@ -4,5 +4,33 @@
   {{ super() }}
 {% endblock %}
 {% block content %}
-  <h1>Welcome to Caringbah Social Golf Club</h1>
+<div class="container-fluid">
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">Brief Match Results</h3>
+    </div>
+    <div class="panel-body">
+    </div>
+    <table class="table">
+      <thead>
+        <tr>
+          <td>Date</td>
+          <td>Location</td>
+          <td>Winner</td>
+          <td>Runner Up</td>
+        </tr>
+      </thead>
+      <tbody>
+      {% for match in matches %}
+        <tr>
+          <td><a href="#">{{ match.date }} </a></td>
+          <td> </td>
+          <td> </td>
+          <td> </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}

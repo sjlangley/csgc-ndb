@@ -353,12 +353,20 @@ class GetMatch(webapp2.RequestHandler):
 
   def _return_match_summaries(self):
 
-    matches = Match.Query().order(-Match.date)
+    matches = Match.query().order(-Match.date)
     result = []
 
     for match in matches:
+      tee = _get_tee_by_key(match.tee)
       result.append({
-        date: match.date,
+        'match_key': match.key.urlsafe(),
+        'date': match.date.strftime('%Y-%m-%d'),
+        'tee' : {
+          'name': tee['name'],
+          'slope': tee['slope'],
+          'amcr': tee['amcr'],
+          'par': tee['par'],
+        }
       })
 
     return result
