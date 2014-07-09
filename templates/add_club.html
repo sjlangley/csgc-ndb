@@ -1,0 +1,94 @@
+{% extends "_base.html" %}
+{% block title %}Caringbah Social Golf Club{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block content %}
+  <h1></h1>
+  <form role="form" method="post" action="{{add_club_post_url}}">
+    <div class="panel panel-primary">
+      <div class="panel-heading">Add New Golf Club</div>
+      <div class="panel-body">
+        <div class="form-group">
+          <label for="clubNameInput">Club Name</label>
+          <input type="text" class="form-control" id="clubNameInput" name="clubNameInput" placeholder="Enter Club Name">
+        <span class="help-block">
+          <p>If a club has more than two courses, enter it as a separate club.</p>
+          <p>Lookup Course information <a href="http://www.golf.org.au/default.aspx?s=course-ratings-for-australian-courses">here</a>.</p>
+        </span>
+        </div>
+      </div>
+    </div>
+    {% for course in range(courses_per_club) %}
+    <div class="panel panel-success">
+      <div class="panel-heading">
+        Course Information
+      </div>
+      <div class="panel-body">
+        <div class="form-group">
+          <label for="courseNameInput_{{course}}">Course Name</label>
+          <input type="text" class="form-control" id="courseNameInput_{{course}}" name=id="courseNameInput_{{course}}"placeholder="Enter Course Name">
+        </div>
+        <!-- 3 Tees per course possible so far -->
+        <div class="row">
+          <div class="col-xs-2">
+            {% for tee in range(tees_per_course) %}
+            <div class="form-group">
+              {% if tee == 0 %}
+              <label for="teeNameInput_{{course}}_{{tee}}">Tee Name</label>
+              {% endif %}
+              <input type="text" class="form-control" id="teeNameInput_{{course}}_{{tee}}" name="teeNameInput_{{course}}_{{tee}}"placeholder="Tee Name">
+            </div>
+            {% endfor %}
+          </div>
+
+          <div class="col-xs-2">
+            {% for tee in range(tees_per_course) %}
+            <div class="form-group">
+              {% if tee == 0 %}
+              <label for="teeAmcrInput_{{course}}_{{tee}}">AMCR</label>
+              {% endif %}
+              <input type="number" class="form-control" id="teeAmcrInput_{{course}}_{{tee}}" name="teeAmcrInput_{{course}}_{{tee}}" placeholder="AMCR">
+            </div>
+            {% endfor %}
+          </div>
+
+          <div class="col-xs-2">
+            {% for tee in range(tees_per_course) %}
+            <div class="form-group">
+              {% if tee == 0 %}
+              <label for="teeSlopeInput_{{course}}_{{tee}}">Slope</label>
+              {% endif %}
+              <input type="number" class="form-control" id="teeSlopeInput_{{course}}_{{tee}}" name="teeSlopeInput_{{course}}_{{tee}}"placeholder="Slope">
+            </div>
+            {% endfor %}
+          </div>
+
+          <div class="col-xs-2">
+            {% for tee in range(tees_per_course) %}
+            <div class="form-group">
+              {% if tee == 0 %}
+              <label for="teeDistanceInput_{{course}}_{{tee}}">Distance</label>
+              {% endif %}
+              <input type="number" class="form-control" id="teeDistanceInput_{{course}}_{{tee}}" name="teeDistanceInput_{{course}}_{{tee}}" placeholder="meters">
+            </div>
+            {% endfor %}
+          </div>
+          <div class="col-xs-2">
+            {% for tee in range(tees_per_course) %}
+            <div class="form-group">
+              {% if tee == 0 %}
+              <label for="teeParInput_{{course}}_{{tee}}">Par</label>
+              {% endif %}
+              <input type="number" min="65" max="80" class="form-control" id="teeParInput_{{course}}_{{tee}}" name="teeParInput_{{course}}_{{tee}}"placeholder="par">
+            </div>
+            {% endfor %}
+          </div>
+        </div> <!-- row -->
+     </div>
+    </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+
+{% endblock %}

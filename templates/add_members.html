@@ -1,0 +1,30 @@
+{% extends "_base.html" %}
+{% block title %}Caringbah Social Golf Club{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block content %}
+  <form method="post" action="{{ add_member_post_url }}">
+    <table>
+      <tr>
+        <td>First Name</td>
+        <td>Last Name</td>
+        <td>Email</td>
+        <td>Phone Number</td>
+        <td>Phone Number</td>
+      </tr>
+      {% for i in range(form_size) %}
+      <tr>
+        <td><input type="text" id="first_name{{i}}" name="first_name{{i}}"></td>
+        <td><input type="text" id="last_name{{i}}" name="last_name{{i}}"></td>
+        <td><input type="text" id="email{{i}}" name="email{{i}}"></td>
+        <td><input type="text" id="phone_number1{{i}}" name="phone_number1{{i}}"></td>
+        <td><input type="text" id="phone_number2{{i}}" name="phone_number2{{i}}"></td>
+      </tr>
+      {% endfor %}
+    </table>
+    <input type="hidden" value="{{ form_size }}" name="form_size">
+    <input type="submit" value="Add Members">
+    <input type="reset">
+  </form>
+{% endblock %}

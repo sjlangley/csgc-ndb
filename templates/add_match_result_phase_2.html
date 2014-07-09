@@ -1,0 +1,105 @@
+{% extends "_base.html" %}
+{% block title %}Caringbah Social Golf Club{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block content %}
+
+{% macro add_select(title, name, members) -%}
+  <div class="form-group">
+    <label for="{{name}}" class="col-sm-2 control-label">{{ title }}</label>
+    <div class="col-sm-3">
+      <select class="form-control input-sm" name="{{name}}" required="true" id="{{name}}">
+        <option value="none">-</option>
+        {% for member in members %}
+        <option value="{{member.key}}">{{member.first_name}} {{member.last_name}}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+{%- endmacro %}
+
+<form class="form-horizontal" role="form" method="post" action="{{submit_score_url}}">
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h3>{{ club_name }}</h3>
+    </div>
+    <div class="panel-body">
+      <div class="radio">
+        {% for course in course_data %}
+          {% for tee in course.tees %}
+          <label>
+            <input type="radio" name="teeRadio" value="{{ tee.key }}">
+            {{ course.name }} Tee: {{ tee.name }} Par: {{ tee.par }}
+          </label>
+          {% endfor %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="panel panel-success">
+    <div class="panel-heading">
+      <h3>Match Details</h3>
+    </div>
+    <div class="panel-body">
+      <div class="form-group">
+        <label for="game_date" class="col-sm-2 control-label">Match Date</label>
+        <div class="col-sm-3">
+          <input type="date" class="form-control" id="game_date" name="game_date" value="{{todays_date}}">
+        </div>
+      </div>
+
+      {% for i in range(max_player_results) %}
+      <div class="form-group">
+        <label for="score_{{i}}" class="control-label col-xs-1">Player</label>
+        <div class="col-xs-2">
+          <select class="form-control input-sm" name="score_{{i}}" required="true" id="score_{{i}}">
+            <option value="none">-</option>
+            {% for member in member_data %}
+            <option value="{{member.key}}">{{member.first_name}} {{member.last_name}}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-xs-1">
+          <input type="number" min="60" max="120" id="score_value_{{i}}" name="score_value_{{i}}" placeholder="Score">
+        </div>
+        <div class="col-xs-1">
+          <input type="number" min="-5" max="36" id="hc_value_{{i}}" name="hc_value_{{i}}" placeholder="h/c">
+        </div>
+        <div class="col-xs-1">
+          <input type="number" min="50" max="120" id="nett_value_{{i}}" name="nett_value_{{i}}" placeholder="Nett">
+        </div>
+        <div class="col-xs-1">
+          <input type="number" min="0" max="99" id="pts_value_{{i}}" name="pts_value_{{i}}" placeholder="Pts">
+        </div>
+      </div>
+      {% endfor %}
+
+      {{ add_select("Winner", "winner", member_data) }}
+      {{ add_select("Runner Up", "runner_up", member_data) }}
+      {{ add_select("Third Place", "third_place", member_data) }}
+      {{ add_select("Forth Place", "forth_place", member_data) }}
+      <p>
+      {{ add_select("Closest Pin 4th", "closest_pin_4th", member_data) }}
+      {{ add_select("5th Drive/Chip", "drive_chip_5th", member_data) }}
+      {{ add_select("6th Drive/Chip", "drive_chip_6th", member_data) }}
+      {{ add_select("Closest Pin 9th", "closest_pin_9th", member_data) }}
+      {{ add_select("Closest Pin 10th", "closest_pin_10th", member_data) }}
+      {{ add_select("Closest Pin 16th", "closest_pin_16th", member_data) }}
+      {{ add_select("Closest Pin 17th", "closest_pin_17th", member_data) }}
+      {{ add_select("14th Longest Drive (0-18)", "longest_drive_0_18", member_data) }}
+      {{ add_select("14th Longest Drive (19 and up)", "longest_drive_19plus", member_data) }}
+      {{ add_select("14th Longest Drive (Over 60)", "longest_drive_60over", member_data) }}
+
+    </div>
+  </div>
+  <button type="submit" class="btn btn-default">Submit</button>
+</form>
+<script>
+$(document).ready(function(){
+  $("game_date").click(function(event){
+    alert("Foo");
+  })
+})
+</script>
+{% endblock %}

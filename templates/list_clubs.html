@@ -1,0 +1,49 @@
+{% extends "_base.html" %}
+{% block title %}Caringbah Social Golf Club{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block content %}
+{% for club in club_data %}
+<div class="panel panel-default">
+{% if club.name %}
+  <div class="panel-heading">
+    <h3 class="panel-title">{{ club.name }}</h3>
+  </div>
+  {% for course in club.courses %}
+  <div class="panel-body">
+    {{ course.name }}
+  </div>
+  <div class="table-responsive">
+    <table class="table-striped">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>AMCR</th>
+          <th>Slope</th>
+          <th>Distance</th>
+          <th>Par</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for tee in course.tees %}
+        <tr>
+          <td>{{ tee.name }}</td>
+          <td>{{ tee.amcr }}</td>
+          <td>{{ tee.slope }} </td>
+          <td>{{ tee.distance }} </td>
+          <td>{{ tee.par }} </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endfor %}
+{% else %}
+  <div class="panel-heading">
+    <h3 class="panel-title">No clubs matched the search criteria</h3>
+  </div>
+{% endif %}
+</div>
+{% endfor %}
+{% endblock %}

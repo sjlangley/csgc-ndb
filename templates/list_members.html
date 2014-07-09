@@ -1,0 +1,42 @@
+{% extends "_base.html" %}
+{% block title %}Caringbah Social Golf Club{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block content %}
+   <h2 class="sub-header">Club Members</h2>
+   <div class="table-responsive">
+   <table class="table table-striped">
+     <thread>
+        <tr>
+          <td>Name</td>
+          <td>Last Game</td>
+          <td>Handicap</td>
+          {% if show_pii %}
+          <td>Email</td>
+          <td>Phone</td>
+          <td></td>
+          {% endif %}
+          <td>Number Of Wins</td>
+        </tr>
+      </thread>
+      <tbody>
+        {% for member in member_list %}
+        <tr>
+          <td>
+            {{ member.first_name|capitalize|e }} {{ member.last_name|capitalize|e }}
+          </td>
+          <td> </td> <!-- Last Game -->
+          <td> </td> <!-- Handicap -->
+          {% if show_pii %}
+          <td> </td> <!-- Email -->
+          <td> </td> <!-- Phone -->
+          <td> </td> <!-- Phone2 -->
+          {% endif %}
+          <td> </td> <!-- No of wins -->
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>{% endblock %}
+  </div>
+<!DOCTYPE html>

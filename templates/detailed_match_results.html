@@ -1,0 +1,37 @@
+{% extends "_base.html" %}
+{% block title %}Caringbah Social Golf Club{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">Detailed Match Results</h3>
+    </div>
+    <div class="panel-body">
+    </div>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th>Handicap</th>
+          <th>Scratch</th>
+          <th>Nett</th>
+          <th>Points</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for score in scores %}
+        <tr>
+          <td>{{ score.member.first_name }} {{ score.member.last_name }}</td>
+          <td>{{ score.handicap }}</td>
+          <td>{{ score.scratch }}</td>
+          <td>{{ score.nett }}</td>
+          <td>{{ score.points }}</td>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

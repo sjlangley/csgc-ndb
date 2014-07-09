@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+{% autoescape true %}
+<html lang="en">
+  <head>
+    {% block head %}
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title%}{% endblock %}</title>
+
+    <!-- Bootstrap -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="css/dashboard.css" rel="stylesheet">
+
+    {% endblock %}
+  </head>
+  <body>
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Caringbah Social Golf Club</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="{{home_url}}">Home</a></li>
+            <li><a href="#">Latest Result</a></li>
+            <li><a href="#">Next Match</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="#">Profile</a></li>
+            <li><a href="{{ login_url }}">{{ login_url_linktext }}</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-sm3 col-md-2 sidebar">
+          <ul class="nav nav-sidebar">
+            <li class="active"><a href="#">Overview</a></li>
+          </ul>
+          <ul class="nav nav-sidebar">
+            <li><a href="{{ list_members_general }}">Club Members</a></li>
+            <li><a href="{{ list_club_general }}">Golf Clubs</a></li>
+          </ul>
+          {% if admin_user %}
+          <ul class="nav nav-sidebar">
+            <li><a href="{{ add_member_url }}">Add Members</a></li>
+            <li><a href="{{ add_club_url }}">Add New Golf Club</a></li>
+            <li><a href="{{ add_match_result_url }}">Add Match Result</a></li>
+          </ul>
+          <ul class="nav nav-sidebar">
+            <li><a href="{{ list_member_admin_url }}">Full List Club Members</a></li>
+          </ul>
+          {% endif %}
+        </div>
+      </div>
+      <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+        <div id="content">
+          {% block content %}
+          {% endblock %}
+        </div>
+      </div>
+    </div>
+    <div id="footer">
+      {% block footer %}
+
+      {% endblock %}
+    </div>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="js/bootstrap.min.js"></script>
+  </body>
+</html>
+
+{% endautoescape %}
+

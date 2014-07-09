@@ -1,0 +1,32 @@
+application: auto
+version: auto
+runtime: python27
+api_version: 1
+threadsafe: true
+
+handlers:
+- url: /js
+  static_dir: static/js
+
+- url: /css
+  static_dir: static/css
+
+- url: /fonts
+  static_dir: static/fonts
+
+- url: /api/.*
+  script: api.app
+
+- url: /.*
+  script: main.app
+
+libraries:
+- name: webapp2
+  version: latest
+
+- name: jinja2
+  version: latest
+
+
+
+
