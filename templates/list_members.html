@@ -9,31 +9,61 @@
    <table class="table table-striped">
      <thread>
         <tr>
-          <td>Name</td>
-          <td>Last Game</td>
-          <td>Handicap</td>
+          <td>Name
+            <a href="{{path_url}}?sort_by=last_name"><span class="glyphicon glyphicon-sort-by-alphabet"></span></a>
+            <a href="{{path_url}}?sort_by=last_name&sort_direction=desc"><span class="glyphicon glyphicon-sort-by-alphabet-alt"></span></a>
+          </td>
+          <td>Last Game
+            <a href="{{path_url}}?sort_by=last_match"><span class="glyphicon glyphicon-sort-by-order"></span></a>
+            <a href="{{path_url}}?sort_by=last_match&sort_direction=desc"><span class="glyphicon glyphicon-sort-by-order-alt"></span></a>
+          </td>
+          <td>Handicap
+            <a href="{{path_url}}?sort_by=handicap"><span class="glyphicon glyphicon-sort-by-order"></span></a>
+            <a href="{{path_url}}?sort_by=handicap&sort_direction=desc"><span class="glyphicon glyphicon-sort-by-order-alt"></span></a>
+          </td>
           {% if show_pii %}
           <td>Email</td>
           <td>Phone</td>
           <td></td>
           {% endif %}
-          <td>Number Of Wins</td>
+          <td>Number Of Wins
+            <a href="{{path_url}}?sort_by=match_wins"><span class="glyphicon glyphicon-sort-by-order"></span></a>
+            <a href="{{path_url}}?sort_by=match_wins&sort_direction=desc"><span class="glyphicon glyphicon-sort-by-order-alt"></span></a>
+          </td>
         </tr>
       </thread>
       <tbody>
         {% for member in member_list %}
         <tr>
           <td>
+            <a href="{{ show_member_details }}?member_key={{member.key}}">
             {{ member.first_name|capitalize|e }} {{ member.last_name|capitalize|e }}
+            </a>
           </td>
-          <td> </td> <!-- Last Game -->
-          <td> </td> <!-- Handicap -->
+          <td>
+            {{ member.last_match.date }}
+          </td>
+          <td>
+            {% if member.handicap < 10 %}
+            <span class="badge alert-danger">
+            {% elif member.handicap < 15 %}
+            <span class="badge alert-warning">
+            {% elif member.handicap < 20 %}
+            <span class="badge alert-success>">
+            {% else %}
+            <span class="badge">
+            {% endif %}
+            {{member.handicap.handicap}}
+            </span>
+          </td> <!-- Handicap -->
           {% if show_pii %}
           <td> </td> <!-- Email -->
           <td> </td> <!-- Phone -->
           <td> </td> <!-- Phone2 -->
           {% endif %}
-          <td> </td> <!-- No of wins -->
+          <td>
+            <span class="badge">{{ member.match_wins }}</span>
+          </td> <!-- No of wins -->
         </tr>
         {% endfor %}
       </tbody>

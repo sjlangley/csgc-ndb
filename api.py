@@ -8,6 +8,7 @@ import urllib
 import webapp2
 
 from models import *
+from operator import itemgetter
 
 # Club Management
 class AddClub(webapp2.RequestHandler):
@@ -206,6 +207,8 @@ class ListMembers(webapp2.RequestHandler):
           member.phone_number2,
         ],
         'last_match': _get_last_match_for_member(member.key),
+        'match_wins': _get_total_wins_for_member(member.key),
+        'handicap': _get_handicap_for_member(member.key),
       }
       if with_scores:
         member_data['scores'] = _get_scores_for_member(member.key)
@@ -265,46 +268,46 @@ class AddMatch(webapp2.RequestHandler):
     score_keys = ndb.put_multi(scores)
     match = Match(date=match_date, tee=tee, scores=score_keys)
 
-    if match_result['winner']:
+    if match_result['winner'] and match_result['winner'] != 'none':
       match.winner = ndb.Key(urlsafe=match_result['winner'])
 
-    if match_result['runner_up']:
+    if match_result['runner_up'] and match_result['runner_up'] != 'none':
       match.runner_up = ndb.Key(urlsafe=match_result['runner_up'])
 
-    if match_result['third_place']:
+    if match_result['third_place'] and match_result['third_place'] != 'none':
       match.third_place = ndb.Key(urlsafe=match_result['third_place'])
 
-    if match_result['fourth_place']:
+    if match_result['fourth_place'] and match_result['fourth_place'] != 'none':
       match.fourth_place = ndb.Key(urlsafe=match_result['fourth_place'])
 
-    if match_result['closest_pin_4th']:
+    if match_result['closest_pin_4th'] and match_result['closest_pin_4th'] != 'none':
       match.closest_pin_4th = ndb.Key(urlsafe=match_result['closest_pin_4th'])
 
-    if match_result['drive_chip_5th']:
+    if match_result['drive_chip_5th'] and match_result['drive_chip_5th'] != 'none':
       match.drive_chip_5th = ndb.Key(urlsafe=match_result['drive_chip_5th'])
 
-    if match_result['drive_chip_6th']:
+    if match_result['drive_chip_6th'] and match_result['drive_chip_6th'] != 'none':
       match.drive_chip_6th = ndb.Key(urlsafe=match_result['drive_chip_6th'])
 
-    if match_result['closest_pin_9th']:
+    if match_result['closest_pin_9th'] and match_result['closest_pin_9th'] != 'none':
       match.closest_pin_9th = ndb.Key(urlsafe=match_result['closest_pin_9th'])
 
-    if match_result['closest_pin_10th']:
+    if match_result['closest_pin_10th'] and match_result['closest_pin_10th'] != 'none':
       match.closest_pin_10th = ndb.Key(urlsafe=match_result['closest_pin_10th'])
 
-    if match_result['closest_pin_16th']:
+    if match_result['closest_pin_16th'] and match_result['closest_pin_16th'] != 'none':
       match.closest_pin_16th = ndb.Key(urlsafe=match_result['closest_pin_16th'])
 
-    if match_result['closest_pin_17th']:
+    if match_result['closest_pin_17th'] and match_result['closest_pin_17th'] != 'none':
       match.closest_pin_10th = ndb.Key(urlsafe=match_result['closest_pin_17th'])
 
-    if match_result['longest_drive_0_18']:
+    if match_result['longest_drive_0_18'] and match_result['longest_drive_0_18'] != 'none':
       match.longest_drive_0_18 = ndb.Key(urlsafe=match_result['longest_drive_0_18'])
 
-    if match_result['longest_drive_19plus']:
+    if match_result['longest_drive_19plus'] and match_result['longest_drive_19plus'] != 'none':
       match.longest_drive_19plus = ndb.Key(urlsafe=match_result['longest_drive_19plus'])
 
-    if match_result['longest_drive_60over']:
+    if match_result['longest_drive_60over'] and match_result['longest_drive_60over'] != 'none':
       match.longest_drive_60over = ndb.Key(urlsafe=match_result['longest_drive_60over'])
 
     match.put()
@@ -465,6 +468,82 @@ def _get_last_match_for_member(member_key):
       'points': score[0].points,
     }
 
+def _get_total_wins_for_member(member_key):
+  """How many times a member is marked as a 'winner'."""
+  return Match.query(Match.winner == member_key).count()
+
+
+def _get_handicap_for_member(member_key):
+  """Get the handicap for a member."""
+
+  member = member_key.get()
+  adj_scores = []
+  scores = Score.query(Score.member == member_key).order(-Score.date).fetch(20)
+
+
+  for score in scores:
+    tee = score.tee.get()
+    win = Match.query(ndb.AND(Match.winner == member_key,
+                              Match.date == score.date)).count() > 0
+    adj_scores.append({
+      'date': score.date.strftime('%Y-%m-%d'),
+      'scratch': score.scratch,
+      'nett': score.nett,
+      'points': score.points,
+      'par': tee.par,
+      'slope': tee.slope,
+      'amcr': tee.amcr,
+      'win': win,
+      'used_for_handicap': False,
+    })
+
+  handicap = member.initial_handicap
+
+  if adj_scores:
+    adj_scores = _calculate_differetntial(adj_scores);
+    count = _get_scores_for_handicap(len(adj_scores))
+    adj_scores = sorted(adj_scores,
+                        key=itemgetter('differential'),
+                        reverse=True)
+    total = 0.0;
+    for i in xrange(count):
+      total += adj_scores[i]['differential']
+      adj_scores[i]['used_for_handicap'] = True
+
+    handicap = total / count * 0.93
+
+    adj_scores = sorted(adj_scores, key=itemgetter('date'))
+
+
+  return {
+    'handicap': handicap,
+    'initial_handicap': member.initial_handicap,
+    'scores': adj_scores,
+  }
+
+def _calculate_differetntial(scores):
+  """Calculate the differential for a list of scores."""
+  result = []
+  for score in scores:
+    if not score['slope']:
+      score['slope'] = 113
+
+    esc_adjustment = min(36, score['scratch'] - score['amcr'])
+    if score['win']:
+      esc_adjustment = esc_adjustment - 2
+
+    score['esc_adjustment'] = esc_adjustment
+
+    differential = min((esc_adjustment * 113) / score['slope'], 36.4)
+    score['differential'] = differential
+    result.append(score)
+
+  return result
+
+
+def _get_scores_for_handicap(scoure_count):
+
+  return 1
 
 app = webapp2.WSGIApplication([
   ('/api/add-club', AddClub),

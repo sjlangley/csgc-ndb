@@ -88,8 +88,14 @@ class ListMembersGeneral(webapp2.RequestHandler):
     result = urlfetch.fetch(url, follow_redirects=False)
     data = json.loads(result.content)
 
+    sort_order = self.request.get('sort_by', 'last_name')
+    sort_direction = self.request.get('sort_direction', 'asc')
+    reverse = sort_direction == 'desc'
+    member_data = sorted(data, key=itemgetter(sort_order), reverse=reverse)
+
     template_values = _get_standard_template_properties(self.request)
-    template_values['member_list'] = data
+    template_values['member_list'] = member_data
+    template_values['path_url'] = self.request.path_url
     template_values['show_pii'] = False
 
     template = JINJA_ENVIRONMENT.get_template('list_members.html')
@@ -110,6 +116,21 @@ class ListMembers(webapp2.RequestHandler):
 
     template = JINJA_ENVIRONMENT.get_template('list_members.html')
     self.response.write(template.render(template_values))
+
+
+class ShowMemberDetails(webapp2.RequestHandler):
+  """Show all scores + handicap calculations for a member."""
+
+  def get(self):
+    template_values = _get_standard_template_properties(self.request)
+
+    member_key = self.request.get('member_key')
+
+    if not member_key:
+      self.response.location(template_values['list_members_general'])
+
+
+
 
 
 class AddMatchResult(webapp2.RequestHandler):
@@ -175,10 +196,11 @@ class ShowMatchResult(webapp2.RequestHandler):
     url = '%s/api/get-match?match_key=%s' % (self.request.host_url, match_key)
     result = urlfetch.fetch(url, follow_redirects=False)
     match_data = json.loads(result.content)
+    scores = sorted(match_data['scores'], key=itemgetter('points'), reverse=True)
 
     template_values = _get_standard_template_properties(self.request)
     template_values['match'] = match_data
-    template_values['scores'] = sorted(match_data['scores'], key=itemgetter('points'), reverse=True)
+    template_values['scores'] = scores
     template = JINJA_ENVIRONMENT.get_template('detailed_match_results.html')
     self.response.write(template.render(template_values))
 
@@ -189,6 +211,7 @@ class ShowMatchResult(webapp2.RequestHandler):
 
     template_values = _get_standard_template_properties(self.request)
     template_values['matches'] = match_data
+    template_values['detailed_match_url'] = '%s/show-match-result' % self.request.host_url
     template = JINJA_ENVIRONMENT.get_template('brief_match_results.html')
     self.response.write(template.render(template_values))
 
@@ -227,6 +250,7 @@ def _get_standard_template_properties(request):
     'list_members_general': '%s/list-members-general' % base,
     'list_club_general': '%s/list-club-general' % base,
     'show_match_result': '%s/show-match-result' % base,
+    'shoe_member_details': '%s/show-member-details' % base,
 
     # Admin Links
     'add_club_url': '%s/add-club' % base,
@@ -245,6 +269,7 @@ app = webapp2.WSGIApplication([
   ('/list-members-general', ListMembersGeneral),
   ('/list-club-general', ListClubGeneral),
   ('/show-match-result', ShowMatchResult),
+  ('/show-member-details', ShowMemberDetails),
 
   # Admin Functions
   ('/add-club', AddClub),
