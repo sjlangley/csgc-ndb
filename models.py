@@ -46,7 +46,7 @@ class Match(ndb.Model):
   date = ndb.DateProperty()
   tee = ndb.KeyProperty(kind=Tee)
   scores = ndb.KeyProperty(kind=Score, repeated=True)
-  winner = ndb.KeyProperty(kind=Member, required=True)
+  winner = ndb.KeyProperty(kind=Member)
   runner_up = ndb.KeyProperty(kind=Member)
   third_place = ndb.KeyProperty(kind=Member)
   fourth_place = ndb.KeyProperty(kind=Member)

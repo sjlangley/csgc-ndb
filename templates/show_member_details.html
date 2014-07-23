@@ -1,0 +1,51 @@
+{% extends "_base.html" %}
+{% block title %}Caringbah Social Golf Club{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">Player Detais</h3>
+    </div>
+    <div class="panel-body">
+      {{ member_data.first_name }} {{ member_data.last_name }}
+      <p>
+      Current Handicap: {{ hc_data.handicap }}
+    </div>
+    <div class="table-responsive">
+      <table class="table table-condensed">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Scratch</th>
+          <th>AMCR</th>
+          <th>Slope</th>
+          <th>Differential</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for score in score_data %}
+        <tr {% if score.used %} class="danger" {% endif %}>
+          <td> {{ score.date }}</td>
+          <td> {{ score.scratch }} </td>
+          <td> {{ score.amcr }}</td>
+          <td> {{ score.slope }} </td>
+          <td>
+            <span {% if score.win %} class="badge" {% endif %}>
+              {{ score.differential }}
+            </span>
+          </td>
+        </tr>
+      {% endfor %}
+        <tr>
+          <th class="success" rowspan="4">
+          </th>
+        </tr>
+      </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

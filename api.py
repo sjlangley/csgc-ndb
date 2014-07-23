@@ -219,6 +219,28 @@ class ListMembers(webapp2.RequestHandler):
     self.response.out.write(json.dumps(result))
 
 
+class GetMember(webapp2.RequestHandler):
+
+  def get(self):
+    member_key = self.request.get('member_key', default_value=None)
+    key = ndb.Key(urlsafe=member_key)
+    member = key.get()
+
+    result = {
+      'first_name': member.first_name,
+      'last_name': member.last_name,
+      'nick_name': member.nick_name,
+      'email': member.email,
+      'member_no': member.member_no,
+      'phone_number1': member.phone_number1,
+      'phone_number2': member.phone_number2,
+      'initial_handicap': member.initial_handicap,
+    }
+
+    self.response.content_type = 'application/json';
+    self.response.out.write(json.dumps(result))
+
+
 # Score Management
 class GetScores(webapp2.RequestHandler):
   """Retrieves all of the scores for a single member."""
@@ -228,9 +250,11 @@ class GetScores(webapp2.RequestHandler):
     key = ndb.Key(urlsafe=member_key)
     member = key.get()
 
-    result = [{
-      'member_key': _get_scores_for_member(member.key())
-    }]
+    result = {
+      'scores': _get_scores_for_member(member.key),
+      'handicap': _get_handicap_for_member(member.key),
+      'wins': _get_total_wins_for_member(member.key),
+    }
 
     self.response.content_type = 'application/json';
     self.response.out.write(json.dumps(result))
@@ -429,7 +453,7 @@ def _get_scores_for_member(member_key):
   scores = []
   for score in score_query:
     scores.append({
-      'date': score.date,
+      'date': score.date.strftime('%Y-%m-%d'),
       'handicap': score.handicap,
       'scratch': score.scratch,
       'nett': score.nett,
@@ -440,9 +464,17 @@ def _get_scores_for_member(member_key):
 
 def _get_tee_by_key(tee_key):
   tee = tee_key.get()
+  course = tee.course.get()
+  club = course.club.get()
+
   return {
     'name': tee.name,
-    'course': tee.course,
+    'course': {
+      'name': course.name,
+      'club': {
+        'name': club.name,
+      },
+    },
     'slope': tee.slope,
     'amcr': tee.amcr,
     'par': tee.par,
@@ -478,7 +510,7 @@ def _get_handicap_for_member(member_key):
 
   member = member_key.get()
   adj_scores = []
-  scores = Score.query(Score.member == member_key).order(-Score.date).fetch(20)
+  scores = Score.query(Score.member == member_key).order(-Score.date)
 
 
   for score in scores:
@@ -503,8 +535,7 @@ def _get_handicap_for_member(member_key):
     adj_scores = _calculate_differetntial(adj_scores);
     count = _get_scores_for_handicap(len(adj_scores))
     adj_scores = sorted(adj_scores,
-                        key=itemgetter('differential'),
-                        reverse=True)
+                        key=itemgetter('differential'))
     total = 0.0;
     for i in xrange(count):
       total += adj_scores[i]['differential']
@@ -541,9 +572,23 @@ def _calculate_differetntial(scores):
   return result
 
 
-def _get_scores_for_handicap(scoure_count):
-
-  return 1
+def _get_scores_for_handicap(score_count):
+  """ From http://www.golf.org.au/howtocalculateahandicap """
+  if score_count < 7:
+    return 1
+  if score_count < 9:
+    return 2
+  if score_count < 11:
+    return 3
+  if score_count < 13:
+    return 4
+  if score_count < 15:
+    return 5
+  if score_count < 17:
+    return 6
+  if score_count < 19:
+    return 7
+  return 8
 
 app = webapp2.WSGIApplication([
   ('/api/add-club', AddClub),
@@ -551,6 +596,7 @@ app = webapp2.WSGIApplication([
 
   ('/api/add-members', AddMember),
   ('/api/list-members', ListMembers),
+  ('/api/get-member', GetMember),
 
   ('/api/get-scores', GetScores),
   ('/api/delete-score', DeleteScore),

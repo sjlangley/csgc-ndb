@@ -7,8 +7,12 @@
    <h2 class="sub-header">Club Members</h2>
    <div class="table-responsive">
    <table class="table table-striped">
-     <thread>
+     <thead>
         <tr>
+          <td>Member Number
+            <a href="{{path_url}}?sort_by=member_no"><span class="glyphicon glyphicon-sort-by-alphabet"></span></a>
+            <a href="{{path_url}}?sort_by=member_no&sort_direction=desc"><span class="glyphicon glyphicon-sort-by-alphabet-alt"></span></a>
+          </td>
           <td>Name
             <a href="{{path_url}}?sort_by=last_name"><span class="glyphicon glyphicon-sort-by-alphabet"></span></a>
             <a href="{{path_url}}?sort_by=last_name&sort_direction=desc"><span class="glyphicon glyphicon-sort-by-alphabet-alt"></span></a>
@@ -31,10 +35,13 @@
             <a href="{{path_url}}?sort_by=match_wins&sort_direction=desc"><span class="glyphicon glyphicon-sort-by-order-alt"></span></a>
           </td>
         </tr>
-      </thread>
+      </thead>
       <tbody>
         {% for member in member_list %}
         <tr>
+          <td>
+            <span class="badge"> {{ member.member_no }} </span>
+          </td>
           <td>
             <a href="{{ show_member_details }}?member_key={{member.key}}">
             {{ member.first_name|capitalize|e }} {{ member.last_name|capitalize|e }}
@@ -67,6 +74,7 @@
         </tr>
         {% endfor %}
       </tbody>
-    </table>{% endblock %}
+    </table>
   </div>
-<!DOCTYPE html>
+{% endblock %}
+

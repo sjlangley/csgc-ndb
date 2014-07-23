@@ -69,7 +69,7 @@ class ListClubGeneral(webapp2.RequestHandler):
     url = "%s/api/list-clubs" % self.request.host_url
 
     club_key = self.request.get('club-key', allow_multiple=True)
-    result = urlfetch.fetch(url, follow_redirects=True)
+    result = urlfetch.fetch(url, follow_redirects=False, deadline=30)
     data = json.loads(result.content)
 
     template_values = _get_standard_template_properties(self.request)
@@ -85,7 +85,7 @@ class ListMembersGeneral(webapp2.RequestHandler):
   def get(self):
 
     url = '%s/api/list-members' % self.request.host_url
-    result = urlfetch.fetch(url, follow_redirects=False)
+    result = urlfetch.fetch(url, follow_redirects=False,  deadline=30)
     data = json.loads(result.content)
 
     sort_order = self.request.get('sort_by', 'last_name')
@@ -107,7 +107,7 @@ class ListMembers(webapp2.RequestHandler):
 
   def get(self):
     url = '%s/api/list-members' % self.request.host_url
-    result = urlfetch.fetch(url, follow_redirects=False)
+    result = urlfetch.fetch(url, follow_redirects=False, deadline=30)
     data = json.loads(result.content)
 
     template_values = _get_standard_template_properties(self.request)
@@ -129,7 +129,38 @@ class ShowMemberDetails(webapp2.RequestHandler):
     if not member_key:
       self.response.location(template_values['list_members_general'])
 
+    url = '%s/api/get-scores?member_key=%s' % (self.request.host_url,
+                                               member_key)
+    result = urlfetch.fetch(url, follow_redirects=False, deadline=30)
+    data = json.loads(result.content)
 
+    url = '%s/api/get-member?member_key=%s' % (self.request.host_url,
+                                               member_key)
+    result = urlfetch.fetch(url, follow_redirects=False, deadline=30)
+    member_data = json.loads(result.content)
+
+    score_data = []
+    for score, hc_data in zip(data['scores'], data['handicap']['scores']):
+      score_data.append({
+        'date': score['date'],
+        'scratch':  score['scratch'],
+        'nett': score['nett'],
+        'handicap': score['handicap'],
+        'tee': score['tee'],
+        'slope': hc_data['slope'],
+        'amcr': hc_data['amcr'],
+        'differential': hc_data['differential'],
+        'win': hc_data['win'],
+        'used': hc_data['used_for_handicap'],
+      })
+
+    score_data = sorted(score_data, key=itemgetter("date"), reverse=True)
+    template_values['score_data'] = score_data
+    template_values['hc_data'] = data['handicap']
+    template_values['wins'] = data['wins']
+    template_values['member_data'] = member_data
+    template = JINJA_ENVIRONMENT.get_template('show_member_details.html')
+    self.response.write(template.render(template_values))
 
 
 
@@ -149,7 +180,7 @@ class AddMatchResult(webapp2.RequestHandler):
     """User wants to select the Club the Game was played at."""
 
     url = "%s/api/list-clubs" % self.request.host_url
-    result = urlfetch.fetch(url, follow_redirects=False)
+    result = urlfetch.fetch(url, follow_redirects=False, deadline=30)
     data = json.loads(result.content)
 
     clubs = [{'name': club['name'], 'key': club['key']} for club in data]
@@ -162,12 +193,12 @@ class AddMatchResult(webapp2.RequestHandler):
   def _phase_2(self):
     """We know the club, input the results."""
     members_url = '%s/api/list-members' % self.request.host_url
-    result = urlfetch.fetch(members_url, follow_redirects=False)
+    result = urlfetch.fetch(members_url, follow_redirects=False, deadline=30)
     member_data = json.loads(result.content)
 
     club_key = self.request.get('club_key', None)
     club_url = '%s/api/list-clubs?club_key=%s' % (self.request.host_url, club_key)
-    result = urlfetch.fetch(club_url, follow_redirects=False)
+    result = urlfetch.fetch(club_url, follow_redirects=False, deadline=30)
     club_data = json.loads(result.content)
 
     template_values = _get_standard_template_properties(self.request)
@@ -194,7 +225,7 @@ class ShowMatchResult(webapp2.RequestHandler):
   def _show_detailed_match_results(self, match_key):
     """Show full details about one match."""
     url = '%s/api/get-match?match_key=%s' % (self.request.host_url, match_key)
-    result = urlfetch.fetch(url, follow_redirects=False)
+    result = urlfetch.fetch(url, follow_redirects=False, deadline=30)
     match_data = json.loads(result.content)
     scores = sorted(match_data['scores'], key=itemgetter('points'), reverse=True)
 
@@ -206,7 +237,7 @@ class ShowMatchResult(webapp2.RequestHandler):
 
   def _show_brief_match_results(self):
     url = '%s/api/get-match' % self.request.host_url
-    result = urlfetch.fetch(url, follow_redirects=False)
+    result = urlfetch.fetch(url, follow_redirects=False, deadline=30)
     match_data = json.loads(result.content)
 
     template_values = _get_standard_template_properties(self.request)
@@ -250,7 +281,7 @@ def _get_standard_template_properties(request):
     'list_members_general': '%s/list-members-general' % base,
     'list_club_general': '%s/list-club-general' % base,
     'show_match_result': '%s/show-match-result' % base,
-    'shoe_member_details': '%s/show-member-details' % base,
+    'show_member_details': '%s/show-member-details' % base,
 
     # Admin Links
     'add_club_url': '%s/add-club' % base,
