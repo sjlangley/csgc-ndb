@@ -39,11 +39,23 @@
           </td>
         </tr>
       {% endfor %}
+      </tbody>
+      <tfoot>
         <tr>
-          <th class="success" rowspan="4">
+          <th colspan="4">
+          Average of {{ hc_data.total_scores_used }} lowest score(s)
+          </th>
+          <th class="success" >
+          {{ hc_data.average }}
           </th>
         </tr>
-      </tbody>
+        <th colspan="4">
+        Multiplied by {{ handicap_multiplier }}
+        </th>
+        <th class="success" >
+          {{ hc_data.handicap }}
+        </th>
+      </tfoot>
       </table>
     </div>
   </div>

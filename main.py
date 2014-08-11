@@ -159,6 +159,7 @@ class ShowMemberDetails(webapp2.RequestHandler):
     template_values['hc_data'] = data['handicap']
     template_values['wins'] = data['wins']
     template_values['member_data'] = member_data
+    template_values['handicap_multiplier'] = '0.96'
     template = JINJA_ENVIRONMENT.get_template('show_member_details.html')
     self.response.write(template.render(template_values))
 

@@ -62,5 +62,10 @@ class Match(ndb.Model):
   longest_drive_60over = ndb.KeyProperty(kind=Member)
 
 
+class Config(ndb.Model):
+  win_score_adjustment = ndb.IntegerProperty()
+  handicap_mulitplier = ndb.FloatProperty()
+
+
   # Individual Hole Winners
 

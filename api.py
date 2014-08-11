@@ -4,6 +4,7 @@
 
 from datetime import *
 import json
+import logging
 import urllib
 import webapp2
 
@@ -432,6 +433,7 @@ class GetMatch(webapp2.RequestHandler):
 
     for match in matches:
       tee = _get_tee_by_key(match.tee)
+      winner = _get_member_by_key(match.winner)
       result.append({
         'match_key': match.key.urlsafe(),
         'date': match.date.strftime('%Y-%m-%d'),
@@ -440,7 +442,9 @@ class GetMatch(webapp2.RequestHandler):
           'slope': tee['slope'],
           'amcr': tee['amcr'],
           'par': tee['par'],
-        }
+        },
+        'winner': _get_member_by_key(match.winner),
+        'runner_up': _get_member_by_key(match.runner_up),
       })
 
     return result
@@ -481,11 +485,16 @@ def _get_tee_by_key(tee_key):
   }
 
 def _get_member_by_key(member_key):
-  member = member_key.get()
+  member = member_key.get() if member_key else None
+
+  if not member:
+    logging.debug('Member was missing from database.')
+    if member_key:
+      logging.debug('Missing member key is %s.', member_key.urlsafe())
 
   return {
-    'first_name': member.first_name,
-    'last_name': member.last_name,
+    'first_name': member.first_name if member else '',
+    'last_name': member.last_name if member else '',
   }
 
 def _get_last_match_for_member(member_key):
@@ -530,6 +539,7 @@ def _get_handicap_for_member(member_key):
     })
 
   handicap = member.initial_handicap
+  average = 0.0
 
   if adj_scores:
     adj_scores = _calculate_differetntial(adj_scores);
@@ -541,7 +551,8 @@ def _get_handicap_for_member(member_key):
       total += adj_scores[i]['differential']
       adj_scores[i]['used_for_handicap'] = True
 
-    handicap = total / count * 0.93
+    average = total / count
+    handicap = average * 0.96
 
     adj_scores = sorted(adj_scores, key=itemgetter('date'))
 
@@ -550,6 +561,8 @@ def _get_handicap_for_member(member_key):
     'handicap': handicap,
     'initial_handicap': member.initial_handicap,
     'scores': adj_scores,
+    'average': average,
+    'total_scores_used': _get_scores_for_handicap(len(adj_scores)),
   }
 
 def _calculate_differetntial(scores):
@@ -566,7 +579,7 @@ def _calculate_differetntial(scores):
     score['esc_adjustment'] = esc_adjustment
 
     differential = min((esc_adjustment * 113) / score['slope'], 36.4)
-    score['differential'] = differential
+    score['differential'] = round(differential, 2)
     result.append(score)
 
   return result
