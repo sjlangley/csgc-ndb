@@ -244,8 +244,47 @@ class ShowMatchResult(webapp2.RequestHandler):
     template_values = _get_standard_template_properties(self.request)
     template_values['matches'] = match_data
     template_values['detailed_match_url'] = '%s/show-match-result' % self.request.host_url
+    template_values['edit_match_url'] = '%s/edit-match-result' % self.request.host_url
     template = JINJA_ENVIRONMENT.get_template('brief_match_results.html')
     self.response.write(template.render(template_values))
+
+
+class EditMatch(webapp2.RequestHandler):
+  """Edit a match restult, including delete."""
+
+  def get(self):
+    match_key = self.request.get('match_key')
+    url = '%s/api/get-match?match_key=%s' % (self.request.host_url, match_key)
+    result = urlfetch.fetch(url, follow_redirects=False, deadline=30)
+    match_data = json.loads(result.content)
+    scores = sorted(match_data['scores'], key=itemgetter('points'), reverse=True)
+
+    template_values = _get_standard_template_properties(self.request)
+    template_values['match'] = match_data
+    template_values['scores'] = scores
+    template_values['match_key'] = match_key
+    template_values['edit_score_url'] = '%s/edit-score-url' % self.request.host_url
+    template_values['delete_match_url'] = '%s/delete-match' % self.request.host_url
+    template = JINJA_ENVIRONMENT.get_template('edit_match_result.html')
+    self.response.write(template.render(template_values))
+
+  def post(self):
+    pass
+
+
+class DeleteMatch(webapp2.RequestHandler):
+
+  def get(self):
+    match_key = self.request.get('match_key')
+    url = '%s/api/delete-match?match_key=%s' % (self.request.host_url, match_key)
+    result = urlfetch.fetch(url, follow_redirects=False, deadline=30)
+    delete_result = json.loads(result.content)
+
+    template_values = _get_standard_template_properties(self.request)
+    template_values['delete_result'] = delete_result
+    template = JINJA_ENVIRONMENT.get_template('delete_match_result.html')
+    self.response.write(template.render(template_values))
+
 
 
 class ShowFailure(webapp2.RequestHandler):
@@ -308,6 +347,8 @@ app = webapp2.WSGIApplication([
   ('/add-members', AddMembers),
   ('/add-match-result', AddMatchResult),
   ('/list-members-admin', ListMembers),
+  ('/edit-match-result', EditMatch),
+  ('/delete-match', DeleteMatch),
 
   # Generic Help/Error Pages
   ('/failure', ShowFailure),

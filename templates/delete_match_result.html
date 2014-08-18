@@ -1,0 +1,23 @@
+{% extends "_base.html" %}
+{% block title %}Caringbah Social Golf Club{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">Delete Match Results</h3>
+    </div>
+    <div class="panel-body">
+    <p>
+    Delete of match was:
+    {% if delete_result.error %}
+    <span class="badge alier-failure">Unsuccessful</span>
+    {% else %}
+    <span class="badge alert-success">Successful</span>
+    {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

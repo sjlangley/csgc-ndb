@@ -26,7 +26,14 @@
           <td><a href="{{ detailed_match_url }}?match_key={{match.match_key}}">{{ match.date }} </a></td>
           <td> </td>
           <td>{{match.winner.first_name}} {{match.winner.last_name}} </td>
-          <td>{{match.runner_up.first_name}}  {{match.runner_up.last_name}} </td>
+          <td>{{match.runner_up.first_name}} {{match.runner_up.last_name}} </td>
+          {% if admin_user %}
+          <td>
+            <a href="{{ edit_match_url }}?match_key={{match.match_key}}">
+               <span class="badge alert-success>">Edit Match</span>
+            </a>
+          </td>
+          {% endif %}
         </tr>
       {% endfor %}
       </tbody>

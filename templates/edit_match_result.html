@@ -1,0 +1,49 @@
+{% extends "_base.html" %}
+{% block title %}Caringbah Social Golf Club{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">Edit Match Results</h3>
+    </div>
+    <div class="panel-body">
+    </div>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th>Handicap</th>
+          <th>Scratch</th>
+          <th>Nett</th>
+          <th>Points</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for score in scores %}
+        <tr>
+          <td>{{ score.member.first_name }} {{ score.member.last_name }}</td>
+          <td>{{ score.handicap }}</td>
+          <td>{{ score.scratch }}</td>
+          <td>{{ score.nett }}</td>
+          <td>{{ score.points }}</td>
+          {% if admin_user %}
+          <td>
+            <a href="{{ edit_score_url }}?score_key={{score.key}}">
+               <span class="badge alert-success">Edit Score</span>
+            </a>
+          </td>
+          {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="panel-body">
+      <a href="{{ delete_match_url }}?match_key={{ match_key}}">
+        <span class="badge alert-success">Delete Match</span>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

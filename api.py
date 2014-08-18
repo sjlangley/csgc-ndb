@@ -421,6 +421,7 @@ class GetMatch(webapp2.RequestHandler):
         'nett': score.nett,
         'points': score.points,
         'handicap': score.handicap,
+        'key': score.key.urlsafe(),
       })
 
     result['scores'] = score_data
@@ -449,6 +450,37 @@ class GetMatch(webapp2.RequestHandler):
 
     return result
 
+
+class DeleteMatch(webapp2.RequestHandler):
+
+  def get(self):
+
+    match_key = self.request.get('match_key')
+    result = {'error': False}
+
+    if match_key:
+      try:
+        self._do_match_delete(match_key)
+      except:
+        result = {'error': True}
+
+
+    self.response.content_type = 'application/json';
+    self.response.out.write(json.dumps(result))
+
+  def _do_match_delete(self, match_key):
+    key = ndb.Key(urlsafe=match_key)
+    match = key.get()
+    tee = _get_tee_by_key(match.tee)
+    scores = ndb.get_multi(match.scores)
+
+    keys = [s.key for s in scores]
+    keys.append(key)
+    self._tx_match_delete(keys)
+
+  @ndb.transactional(xg=True)
+  def _tx_match_delete(self, keys_list):
+    ndb.delete_multi(keys_list)
 
 
 # Misc Functions
@@ -616,4 +648,5 @@ app = webapp2.WSGIApplication([
 
   ('/api/add-match', AddMatch),
   ('/api/get-match', GetMatch),
+  ('/api/delete-match', DeleteMatch),
 ], debug=True)
