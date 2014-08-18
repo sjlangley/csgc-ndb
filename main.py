@@ -233,6 +233,7 @@ class ShowMatchResult(webapp2.RequestHandler):
     template_values = _get_standard_template_properties(self.request)
     template_values['match'] = match_data
     template_values['scores'] = scores
+    template_values['prizes'] = match_data['prizes']
     template = JINJA_ENVIRONMENT.get_template('detailed_match_results.html')
     self.response.write(template.render(template_values))
 

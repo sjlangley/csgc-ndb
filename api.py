@@ -11,6 +11,13 @@ import webapp2
 from models import *
 from operator import itemgetter
 
+RESULT_NAMES = [
+    'winner', 'runner_up', 'third_place', 'fourth_place', 'closest_pin_4th',
+    'drive_chip_5th', 'drive_chip_6th', 'closest_pin_9th', 'closest_pin_10th',
+    'closest_pin_16th', 'closest_pin_17th', 'longest_drive_0_18',
+    'longest_drive_19plus', 'longest_drive_60over',
+]
+
 # Club Management
 class AddClub(webapp2.RequestHandler):
   """Add a new club to the database."""
@@ -425,6 +432,16 @@ class GetMatch(webapp2.RequestHandler):
       })
 
     result['scores'] = score_data
+
+    prizes = []
+    for name in RESULT_NAMES:
+      prizes.append({
+        'name': name,
+        'winner': _get_member_by_key(getattr(match, name))
+      })
+
+    result['prizes'] = prizes
+
     return result
 
   def _return_match_summaries(self):

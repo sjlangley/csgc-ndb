@@ -29,9 +29,29 @@
           <td>{{ score.scratch }}</td>
           <td>{{ score.nett }}</td>
           <td>{{ score.points }}</td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
+  </div>
+  <div class="panel panel-success">
+    <div class="panel-heading">
+      <h3 class="panel-title">Match Prizes</h3>
+    </div>
+    <div class="panel-body">
+      <table class="table">
+        <thead>
+        </thead>
+        <tbody>
+          {% for prize in prizes %}
+          <tr>
+            <td>{{ prize.name }}</td>
+            <td>{{ prize.winner.first_name }} {{ prize.winner.last_name }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endblock %}
