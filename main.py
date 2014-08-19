@@ -88,7 +88,7 @@ class ListMembersGeneral(webapp2.RequestHandler):
     result = urlfetch.fetch(url, follow_redirects=False,  deadline=30)
     data = json.loads(result.content)
 
-    sort_order = self.request.get('sort_by', 'last_name')
+    sort_order = self.request.get('sort_by', 'member_no')
     sort_direction = self.request.get('sort_direction', 'asc')
     reverse = sort_direction == 'desc'
     member_data = sorted(data, key=itemgetter(sort_order), reverse=reverse)
@@ -111,7 +111,7 @@ class ListMembers(webapp2.RequestHandler):
     data = json.loads(result.content)
 
     template_values = _get_standard_template_properties(self.request)
-    template_values['member_list'] = sorted(data, key=itemgetter('last_name'))
+    template_values['member_list'] = sorted(data, key=itemgetter('member_no'))
     template_values['show_pii'] = True
 
     template = JINJA_ENVIRONMENT.get_template('list_members.html')
@@ -163,6 +163,16 @@ class ShowMemberDetails(webapp2.RequestHandler):
     template = JINJA_ENVIRONMENT.get_template('show_member_details.html')
     self.response.write(template.render(template_values))
 
+
+class ShowLatestResult(webapp2.RequestHandler):
+
+  def get(self):
+    url = '%s/api/get-match' % self.request.host_url
+    result = urlfetch.fetch(url, follow_redirects=False, deadline=30)
+    match_data = json.loads(result.content)
+
+    location = '/show-match-result?match_key=%s' % match_data[0]['match_key']
+    self.redirect(location)
 
 
 class AddMatchResult(webapp2.RequestHandler):
@@ -323,7 +333,7 @@ def _get_standard_template_properties(request):
     'list_club_general': '%s/list-club-general' % base,
     'show_match_result': '%s/show-match-result' % base,
     'show_member_details': '%s/show-member-details' % base,
-
+    'show_latest_result': '%s/show-latest-result' % base,
     # Admin Links
     'add_club_url': '%s/add-club' % base,
     'add_members_url': '%s/add-members' % base,
@@ -342,6 +352,7 @@ app = webapp2.WSGIApplication([
   ('/list-club-general', ListClubGeneral),
   ('/show-match-result', ShowMatchResult),
   ('/show-member-details', ShowMemberDetails),
+  ('/show-latest-result', ShowLatestResult),
 
   # Admin Functions
   ('/add-club', AddClub),
