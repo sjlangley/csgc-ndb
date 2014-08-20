@@ -428,6 +428,7 @@ class GetMatch(webapp2.RequestHandler):
         'nett': score.nett,
         'points': score.points,
         'handicap': score.handicap,
+        'date': score.date.strftime('%Y-%m-%d'),
         'key': score.key.urlsafe(),
       })
 

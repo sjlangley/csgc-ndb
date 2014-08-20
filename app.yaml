@@ -25,6 +25,10 @@ handlers:
 - url: /api/.*
   script: api.app
 
+- url: /tasks/.*
+  script: tasks.app
+  login: admin
+
 - url: /.*
   script: main.app
 
