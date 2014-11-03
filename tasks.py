@@ -6,6 +6,7 @@ from google.appengine.api import urlfetch
 
 import json
 import logging
+import urllib
 import webapp2
 
 class FixScoreDates(webapp2.RequestHandler):
@@ -39,8 +40,16 @@ class FixScoreDates(webapp2.RequestHandler):
     mismatch_dates = [score['key'] for score in match_data['scores'] if score['date'] != match_data['date']]
 
     if mismatch_dates:
-      logging.debug('Found a mismatched date')
-
+      form_fields = {
+        'date': match_data['date'],
+        'score_keys': mismatch_dates,
+      }
+      form_data = urllib.urlencode(form_fields)
+      url = '%s/api/update-score-dates' % self.request.host_url
+      result = urlfetch.fetch(url=url,
+                              payload=form_data,
+                              method=urlfetch.POST,
+                              headers={'Content-Type': 'application/x-www-form-urlencoded'})
 
 
 

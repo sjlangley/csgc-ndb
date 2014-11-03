@@ -5,6 +5,7 @@
 from datetime import *
 import json
 import logging
+import math
 import urllib
 import webapp2
 
@@ -274,6 +275,26 @@ class DeleteScore(webapp2.RequestHandler):
   def get(self):
     pass
 
+
+class UpdateScoreDates(webapp2.RequestHandler):
+
+
+  def post(self):
+    date = self.request.get('date')
+    date_object = datetime.strptime(date, '%Y-%m-%d')
+    match_date = date_object.date()
+
+    score_key_values = self.request.get_all('score_keys')
+    logging.debug('Score keys: %s', ','.join(score_key_values))
+    # score_keys = [ndb.Key(urlsafe=key) for key in score_key_values]
+    # scores = ndb.get_multi(score_keys)
+
+    # for score in scores:
+    #   score.date = match_date
+
+    # ndb.put_multi(scores)
+
+
 # Match Management
 class AddMatch(webapp2.RequestHandler):
 
@@ -534,6 +555,7 @@ def _get_tee_by_key(tee_key):
     'par': tee.par,
   }
 
+
 def _get_member_by_key(member_key):
   member = member_key.get() if member_key else None
 
@@ -547,6 +569,7 @@ def _get_member_by_key(member_key):
     'last_name': member.last_name if member else '',
   }
 
+
 def _get_last_match_for_member(member_key):
   score = Score.query(Score.member == member_key).order(-Score.date).fetch(1)
 
@@ -558,6 +581,7 @@ def _get_last_match_for_member(member_key):
       'nett': score[0].nett,
       'points': score[0].points,
     }
+
 
 def _get_total_wins_for_member(member_key):
   """How many times a member is marked as a 'winner'."""
@@ -601,8 +625,8 @@ def _get_handicap_for_member(member_key):
       total += adj_scores[i]['differential']
       adj_scores[i]['used_for_handicap'] = True
 
-    average = total / count
-    handicap = average * 0.96
+    average = math.floor((total / count) * 10) / 10
+    handicap = round(average * 0.96, 1)
 
     adj_scores = sorted(adj_scores, key=itemgetter('date'))
 
@@ -614,6 +638,7 @@ def _get_handicap_for_member(member_key):
     'average': average,
     'total_scores_used': _get_scores_for_handicap(len(adj_scores)),
   }
+
 
 def _calculate_differetntial(scores):
   """Calculate the differential for a list of scores."""
@@ -663,6 +688,7 @@ app = webapp2.WSGIApplication([
 
   ('/api/get-scores', GetScores),
   ('/api/delete-score', DeleteScore),
+  ('/api/update-score-dates', UpdateScoreDates),
 
   ('/api/add-match', AddMatch),
   ('/api/get-match', GetMatch),
