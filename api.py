@@ -616,18 +616,23 @@ def _get_handicap_for_member(member_key):
   average = 0.0
 
   if adj_scores:
-    adj_scores = _calculate_differetntial(adj_scores);
+    adj_scores = sorted(_calculate_differetntial(adj_scores),
+                        key=itemgetter('date'),
+                        reverse=True)
     count = _get_scores_for_handicap(len(adj_scores))
-    adj_scores = sorted(adj_scores,
-                        key=itemgetter('differential'))
+    first_twenty = adj_scores[:20]
+    the_rest = adj_scores[20:]
+    first_twenty = sorted(first_twenty, key=itemgetter('differential'))
+
     total = 0.0;
     for i in xrange(count):
-      total += adj_scores[i]['differential']
-      adj_scores[i]['used_for_handicap'] = True
+      total += first_twenty[i]['differential']
+      first_twenty[i]['used_for_handicap'] = True
 
     average = math.floor((total / count) * 10) / 10
-    handicap = round(average * 0.96, 1)
+    handicap = round(average * 0.93, 1)
 
+    adj_scores = first_twenty + the_rest
     adj_scores = sorted(adj_scores, key=itemgetter('date'))
 
 

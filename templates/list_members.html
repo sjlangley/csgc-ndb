@@ -21,7 +21,11 @@
             <a href="{{path_url}}?sort_by=last_match"><span class="glyphicon glyphicon-sort-by-order"></span></a>
             <a href="{{path_url}}?sort_by=last_match&sort_direction=desc"><span class="glyphicon glyphicon-sort-by-order-alt"></span></a>
           </td>
-          <td>Handicap
+          <td>GA Handicap
+            <a href="{{path_url}}?sort_by=handicap"><span class="glyphicon glyphicon-sort-by-order"></span></a>
+            <a href="{{path_url}}?sort_by=handicap&sort_direction=desc"><span class="glyphicon glyphicon-sort-by-order-alt"></span></a>
+          </td>
+          <td>Daily Handicap
             <a href="{{path_url}}?sort_by=handicap"><span class="glyphicon glyphicon-sort-by-order"></span></a>
             <a href="{{path_url}}?sort_by=handicap&sort_direction=desc"><span class="glyphicon glyphicon-sort-by-order-alt"></span></a>
           </td>
@@ -60,9 +64,19 @@
             {% else %}
             <span class="badge">
             {% endif %}
-            {{member.handicap.handicap}}
+            {{ member.handicap.handicap }}
             </span>
           </td> <!-- Handicap -->
+          <td>
+            <span class="badge alert-danger">
+            {% if member.handicap.handicap %}
+            <!-- Woolooware White Tees Hack Job -->
+            {{ (member.handicap.handicap * 1.14159292035398) | round | int }}
+            {% else %}
+            N/A
+            {% endif %}
+            </span>
+          </td> <!-- Daily Handicap -->
           {% if show_pii %}
           <td> </td> <!-- Email -->
           <td> </td> <!-- Phone -->
