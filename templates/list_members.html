@@ -71,7 +71,8 @@
             <span class="badge alert-danger">
             {% if member.handicap.handicap %}
             <!-- Woolooware White Tees Hack Job -->
-            {{ (member.handicap.handicap * 1.14159292035398) | round | int }}
+            <!-- 124/113 = 1.09734513274 -->
+            {{ (member.handicap.handicap * 1.09734513274) | round | int }}
             {% else %}
             N/A
             {% endif %}
