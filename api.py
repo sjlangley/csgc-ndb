@@ -588,6 +588,7 @@ def _get_member_by_key(member_key):
   })
 
 
+@ndb.synctasklet
 def _get_last_match_for_member(member_key):
 
   @ndb.tasklet
@@ -601,7 +602,8 @@ def _get_last_match_for_member(member_key):
     })
 
   score = Score.query(Score.member == member_key).order(-Score.date)
-  return score.map(callback, limit=1)
+  r = yield score.map_async(callback, limit=1)
+  raise ndb.Return(r)
 
 
 @ndb.synctasklet
@@ -611,7 +613,8 @@ def _get_total_wins_for_member(member_key):
   raise ndb.Return(count)
 
 
-def _get_handicap_for_member(member_key, adjust_score_for_win=True):
+def _get_handicap_for_member(member_key, adjust_score_for_win=True,
+  load_all_scores=True):
   """Get the handicap for a member."""
 
   @ndb.tasklet
@@ -633,9 +636,11 @@ def _get_handicap_for_member(member_key, adjust_score_for_win=True):
 
   member_future = member_key.get_async()
   scores = Score.query(Score.member == member_key)
-  adj_scores = scores.map(callback)
+  adj_scores_future = scores.map_async(callback)
 
   member = member_future.get_result()
+  adj_scores = adj_scores_future.get_result()
+
   handicap = member.initial_handicap
   average = 0.0
 
