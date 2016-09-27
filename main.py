@@ -21,7 +21,7 @@ JINJA_ENVIRONMENT = jinja2.Environment(
   extensions=['jinja2.ext.autoescape'],
   autoescape=True)
 
-WOOLOOWARE_WHITE_DAILY_ADJUSTMENT = 129 / 113
+WOOLOOWARE_WHITE_SLOPE = 124
 
 class MainPage(webapp2.RequestHandler):
   """   """
@@ -86,7 +86,16 @@ class ListMembersGeneral(webapp2.RequestHandler):
 
   def get(self):
 
-    url = '%s/api/list-members' % self.request.host_url
+    daily_slope_rating_str = self.request.get(
+        'daily_slope_rating',
+        default_value=WOOLOOWARE_WHITE_SLOPE)
+    adjust_score_for_win = self.request.get('adjust_score_for_win',
+                                            default_value="True")
+
+    daily_slope_rating = int(daily_slope_rating_str)
+
+    url = '%s/api/list-members?adjust_score_for_win=%s' % (
+        self.request.host_url, adjust_score_for_win)
     result = urlfetch.fetch(url, follow_redirects=False,  deadline=30)
     data = json.loads(result.content)
 
@@ -99,6 +108,7 @@ class ListMembersGeneral(webapp2.RequestHandler):
     template_values['member_list'] = member_data
     template_values['path_url'] = self.request.path_url
     template_values['show_pii'] = False
+    template_values['daily_slope_rating'] = daily_slope_rating / float(113)
 
     template = JINJA_ENVIRONMENT.get_template('list_members.html')
     self.response.write(template.render(template_values))
@@ -127,6 +137,9 @@ class ShowMemberDetails(webapp2.RequestHandler):
     template_values = _get_standard_template_properties(self.request)
 
     member_key = self.request.get('member_key')
+    adjust_score_for_win = self.request.get('adjust_score_for_win',
+                                            default_value="True")
+
 
     if not member_key:
       self.response.location(template_values['list_members_general'])

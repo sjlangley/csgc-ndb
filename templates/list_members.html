@@ -72,7 +72,7 @@
             {% if member.handicap.handicap %}
             <!-- Woolooware White Tees Hack Job -->
             <!-- 124/113 = 1.09734513274 -->
-            {{ (member.handicap.handicap * 1.09734513274) | round | int }}
+            {{ (member.handicap.handicap * daily_slope_rating) | round | int }}
             {% else %}
             N/A
             {% endif %}

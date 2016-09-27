@@ -202,6 +202,10 @@ class ListMembers(webapp2.RequestHandler):
 
   def get(self):
     with_scores = self.request.get('with_scores', default_value=None)
+    adjust_score_for_win_str = self.request.get('adjust_score_for_win',
+                                                default_value="True")
+
+    adjust_score_for_win = adjust_score_for_win_str in ['True', '1', 'yes']
     result = []
     query = Member.query().order(Member.member_no)
     for member in query:
@@ -217,7 +221,7 @@ class ListMembers(webapp2.RequestHandler):
         ],
         'last_match': _get_last_match_for_member(member.key),
         'match_wins': _get_total_wins_for_member(member.key),
-        'handicap': _get_handicap_for_member(member.key),
+        'handicap': _get_handicap_for_member(member.key, adjust_score_for_win),
       }
       if with_scores:
         member_data['scores'] = _get_scores_for_member(member.key)
@@ -256,12 +260,17 @@ class GetScores(webapp2.RequestHandler):
 
   def get(self):
     member_key = self.request.get('member_key', default_value=None)
+    adjust_score_for_win_str = self.request.get('adjust_score_for_win',
+                                                default_value="True")
+
+    adjust_score_for_win = adjust_score_for_win_str in ['True', '1', 'yes']
+
     key = ndb.Key(urlsafe=member_key)
     member = key.get()
 
     result = {
       'scores': _get_scores_for_member(member.key),
-      'handicap': _get_handicap_for_member(member.key),
+      'handicap': _get_handicap_for_member(member.key, adjust_score_for_win),
       'wins': _get_total_wins_for_member(member.key),
     }
 
@@ -588,7 +597,7 @@ def _get_total_wins_for_member(member_key):
   return Match.query(Match.winner == member_key).count()
 
 
-def _get_handicap_for_member(member_key):
+def _get_handicap_for_member(member_key, adjust_score_for_win=True):
   """Get the handicap for a member."""
 
   member = member_key.get()
@@ -616,7 +625,8 @@ def _get_handicap_for_member(member_key):
   average = 0.0
 
   if adj_scores:
-    adj_scores = sorted(_calculate_differetntial(adj_scores),
+    adj_scores = sorted(_calculate_differetntial(adj_scores,
+                                                adjust_score_for_win),
                         key=itemgetter('date'),
                         reverse=True)
     count = _get_scores_for_handicap(len(adj_scores))
@@ -645,7 +655,7 @@ def _get_handicap_for_member(member_key):
   }
 
 
-def _calculate_differetntial(scores):
+def _calculate_differetntial(scores, adjust_score_for_win=True):
   """Calculate the differential for a list of scores."""
   result = []
   for score in scores:
@@ -653,7 +663,7 @@ def _calculate_differetntial(scores):
       score['slope'] = 113
 
     esc_adjustment = min(36, score['scratch'] - score['amcr'])
-    if score['win']:
+    if score['win'] and adjust_score_for_win:
       esc_adjustment = esc_adjustment - 2
 
     score['esc_adjustment'] = esc_adjustment
