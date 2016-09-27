@@ -30,6 +30,7 @@ class Member(ndb.Model):
   phone_number1 = ndb.StringProperty()
   phone_number2 = ndb.StringProperty()
   initial_handicap = ndb.FloatProperty()
+  inactive = ndb.BooleanProperty(default=False)
 
 
 class Score(ndb.Model):

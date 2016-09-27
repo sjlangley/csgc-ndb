@@ -110,7 +110,8 @@ class ListClub(webapp2.RequestHandler):
 
   def _get_club_by_key(self, club_key):
     """Return club details from a given key."""
-    club = club_key.get()
+    club_future = club_key.get_async()
+    club = club_future.get_result()
     result = [{
       'name': club.name,
       'key': club.key.urlsafe(),
@@ -204,11 +205,13 @@ class ListMembers(webapp2.RequestHandler):
     with_scores = self.request.get('with_scores', default_value=None)
     adjust_score_for_win_str = self.request.get('adjust_score_for_win',
                                                 default_value="True")
+    show_inactive_str = self.request.get('show_inactive', default_value="True")
 
     adjust_score_for_win = adjust_score_for_win_str in ['True', '1', 'yes']
-    result = []
-    query = Member.query().order(Member.member_no)
-    for member in query:
+    show_inactive = show_inactive_str in ['True', '1', 'yes']
+
+    @ndb.tasklet
+    def callback(member):
       member_data = {
         'key': member.key.urlsafe(),
         'first_name': member.first_name,
@@ -225,8 +228,10 @@ class ListMembers(webapp2.RequestHandler):
       }
       if with_scores:
         member_data['scores'] = _get_scores_for_member(member.key)
+      raise ndb.Return(member_data)
 
-      result.append(member_data)
+    query = Member.query()
+    result = query.map(callback)
 
     self.response.content_type = 'application/json';
     self.response.out.write(json.dumps(result))
@@ -237,7 +242,8 @@ class GetMember(webapp2.RequestHandler):
   def get(self):
     member_key = self.request.get('member_key', default_value=None)
     key = ndb.Key(urlsafe=member_key)
-    member = key.get()
+    member_future = key.get_async()
+    member = member_future.get_result()
 
     result = {
       'first_name': member.first_name,
@@ -266,7 +272,8 @@ class GetScores(webapp2.RequestHandler):
     adjust_score_for_win = adjust_score_for_win_str in ['True', '1', 'yes']
 
     key = ndb.Key(urlsafe=member_key)
-    member = key.get()
+    member_future = key.get_async()
+    member = member_future.get_result()
 
     result = {
       'scores': _get_scores_for_member(member.key),
@@ -477,13 +484,11 @@ class GetMatch(webapp2.RequestHandler):
 
   def _return_match_summaries(self):
 
-    matches = Match.query().order(-Match.date)
-    result = []
-
-    for match in matches:
+    @ndb.tasklet
+    def callback(match):
       tee = _get_tee_by_key(match.tee)
       winner = _get_member_by_key(match.winner)
-      result.append({
+      raise ndb.Return({
         'match_key': match.key.urlsafe(),
         'date': match.date.strftime('%Y-%m-%d'),
         'tee' : {
@@ -496,13 +501,14 @@ class GetMatch(webapp2.RequestHandler):
         'runner_up': _get_member_by_key(match.runner_up),
       })
 
-    return result
+
+    matches = Match.query().order(-Match.date)
+    return matches.map(callback)
 
 
 class DeleteMatch(webapp2.RequestHandler):
 
   def get(self):
-
     match_key = self.request.get('match_key')
     result = {'error': False}
 
@@ -533,25 +539,26 @@ class DeleteMatch(webapp2.RequestHandler):
 
 # Misc Functions
 def _get_scores_for_member(member_key):
-  score_query = Score.query(Score.member == member_key).order(Score.date)
-  scores = []
-  for score in score_query:
-    scores.append({
+  @ndb.tasklet
+  def callback(score):
+    raise ndb.Return({
       'date': score.date.strftime('%Y-%m-%d'),
       'handicap': score.handicap,
       'scratch': score.scratch,
       'nett': score.nett,
       'tee': _get_tee_by_key(score.tee),
     })
-  return scores
+  score_query = Score.query(Score.member == member_key).order(Score.date)
+  return score_query.map(callback)
 
 
+@ndb.synctasklet
 def _get_tee_by_key(tee_key):
-  tee = tee_key.get()
-  course = tee.course.get()
-  club = course.club.get()
+  tee = yield tee_key.get_async()
+  course = yield tee.course.get_async()
+  club = yield course.club.get_async()
 
-  return {
+  raise ndb.Return({
     'name': tee.name,
     'course': {
       'name': course.name,
@@ -562,54 +569,57 @@ def _get_tee_by_key(tee_key):
     'slope': tee.slope,
     'amcr': tee.amcr,
     'par': tee.par,
-  }
+  })
 
-
+@ndb.synctasklet
 def _get_member_by_key(member_key):
-  member = member_key.get() if member_key else None
+  member = None
+  if member_key:
+    member = yield member_key.get_async()
 
   if not member:
     logging.debug('Member was missing from database.')
     if member_key:
       logging.debug('Missing member key is %s.', member_key.urlsafe())
 
-  return {
+  raise ndb.Return({
     'first_name': member.first_name if member else '',
     'last_name': member.last_name if member else '',
-  }
+  })
 
 
 def _get_last_match_for_member(member_key):
-  score = Score.query(Score.member == member_key).order(-Score.date).fetch(1)
 
-  if score:
-    return {
-      'date': score[0].date.strftime('%Y-%m-%d'),
-      'handicap': score[0].handicap,
-      'scratch': score[0].scratch,
-      'nett': score[0].nett,
-      'points': score[0].points,
-    }
+  @ndb.tasklet
+  def callback(score):
+    raise ndb.Return({
+      'date': score.date.strftime('%Y-%m-%d'),
+      'handicap': score.handicap,
+      'scratch': score.scratch,
+      'nett': score.nett,
+      'points': score.points,
+    })
+
+  score = Score.query(Score.member == member_key).order(-Score.date)
+  return score.map(callback, limit=1)
 
 
+@ndb.synctasklet
 def _get_total_wins_for_member(member_key):
   """How many times a member is marked as a 'winner'."""
-  return Match.query(Match.winner == member_key).count()
+  count = yield Match.query(Match.winner == member_key).count_async()
+  raise ndb.Return(count)
 
 
 def _get_handicap_for_member(member_key, adjust_score_for_win=True):
   """Get the handicap for a member."""
 
-  member = member_key.get()
-  adj_scores = []
-  scores = Score.query(Score.member == member_key).order(-Score.date)
-
-
-  for score in scores:
-    tee = score.tee.get()
-    win = Match.query(ndb.AND(Match.winner == member_key,
-                              Match.date == score.date)).count() > 0
-    adj_scores.append({
+  @ndb.tasklet
+  def callback(score):
+    tee = yield score.tee.get_async()
+    win = yield Match.query(ndb.AND(Match.winner == member_key,
+                              Match.date == score.date)).count_async()
+    raise ndb.Return({
       'date': score.date.strftime('%Y-%m-%d'),
       'scratch': score.scratch,
       'nett': score.nett,
@@ -621,6 +631,11 @@ def _get_handicap_for_member(member_key, adjust_score_for_win=True):
       'used_for_handicap': False,
     })
 
+  member_future = member_key.get_async()
+  scores = Score.query(Score.member == member_key)
+  adj_scores = scores.map(callback)
+
+  member = member_future.get_result()
   handicap = member.initial_handicap
   average = 0.0
 
