@@ -660,6 +660,7 @@ def _get_handicap_for_member(member_key, adjust_score_for_win=True,
       first_twenty[i]['used_for_handicap'] = True
 
     average = math.floor((total / count) * 10) / 10
+    # Multiplier needs to be applied to daily handicap, not GA handicap.
     handicap = round(average * 0.93, 1)
 
     adj_scores = first_twenty + the_rest
@@ -682,13 +683,22 @@ def _calculate_differetntial(scores, adjust_score_for_win=True):
     if not score['slope']:
       score['slope'] = 113
 
-    esc_adjustment = min(36, score['scratch'] - score['amcr'])
+    # ESC adjustment is the maximum score that's possible for the round, either
+    # - 2x18 = 36 if double bogey is the max.
+    # - 3x18 = 54 if triple bogey is he max.
+    # In 2020 Australian golf introduced max mens handicap of 54, so we will
+    # use triple bogey as the max.
+    # ESC is how many shots above or below par the player was for the round.
+    esc_adjustment = min(54, score['scratch'] - score['amcr'])
+    # We take an additional 2 shots from the match winner, because why not.
     if score['win'] and adjust_score_for_win:
       esc_adjustment = esc_adjustment - 2
 
     score['esc_adjustment'] = esc_adjustment
 
-    differential = min((esc_adjustment * 113) / score['slope'], 36.4)
+    # The differential takes into account how hard the course was. Here we
+    # need to clip to the max handicap, which is now 54.0 since 2020.
+    differential = min((esc_adjustment * 113) / score['slope'], 54.0)
     score['differential'] = round(differential, 2)
     result.append(score)
 
