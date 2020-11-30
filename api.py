@@ -200,11 +200,8 @@ class ListMembers(webapp2.RequestHandler):
 
   def get(self):
     with_scores = self.request.get('with_scores', default_value=None)
-    adjust_score_for_win_str = self.request.get('adjust_score_for_win',
-                                                default_value="True")
     show_inactive_str = self.request.get('show_inactive', default_value="True")
 
-    adjust_score_for_win = adjust_score_for_win_str in ['True', '1', 'yes']
     show_inactive = show_inactive_str in ['True', '1', 'yes']
 
     @ndb.tasklet
@@ -221,7 +218,7 @@ class ListMembers(webapp2.RequestHandler):
         ],
         'last_match': _get_last_match_for_member(member.key),
         'match_wins': _get_total_wins_for_member(member.key),
-        'handicap': _get_handicap_for_member(member.key, adjust_score_for_win),
+        'handicap': _get_handicap_for_member(member.key),
       }
       if with_scores:
         member_data['scores'] = _get_scores_for_member(member.key)
@@ -263,10 +260,6 @@ class GetScores(webapp2.RequestHandler):
 
   def get(self):
     member_key = self.request.get('member_key', default_value=None)
-    adjust_score_for_win_str = self.request.get('adjust_score_for_win',
-                                                default_value="True")
-
-    adjust_score_for_win = adjust_score_for_win_str in ['True', '1', 'yes']
 
     key = ndb.Key(urlsafe=member_key)
     member_future = key.get_async()
@@ -274,7 +267,7 @@ class GetScores(webapp2.RequestHandler):
 
     result = {
       'scores': _get_scores_for_member(member.key),
-      'handicap': _get_handicap_for_member(member.key, adjust_score_for_win),
+      'handicap': _get_handicap_for_member(member.key),
       'wins': _get_total_wins_for_member(member.key),
     }
 
@@ -609,7 +602,7 @@ def _get_total_wins_for_member(member_key):
   raise ndb.Return(count)
 
 
-def _get_handicap_for_member(member_key, adjust_score_for_win=True):
+def _get_handicap_for_member(member_key):
   """Get the handicap for a member."""
 
   @ndb.tasklet
@@ -640,8 +633,7 @@ def _get_handicap_for_member(member_key, adjust_score_for_win=True):
   average = 0.0
 
   if adj_scores:
-    adj_scores = sorted(_calculate_differetntial(adj_scores,
-                                                adjust_score_for_win),
+    adj_scores = sorted(_calculate_differetntial(adj_scores),
                         key=itemgetter('date'),
                         reverse=True)
     count = _get_scores_for_handicap(len(adj_scores))
@@ -671,7 +663,7 @@ def _get_handicap_for_member(member_key, adjust_score_for_win=True):
   }
 
 
-def _calculate_differetntial(scores, adjust_score_for_win=True):
+def _calculate_differetntial(scores):
   """Calculate the differential for a list of scores."""
   result = []
   for score in scores:
@@ -685,10 +677,6 @@ def _calculate_differetntial(scores, adjust_score_for_win=True):
     # use triple bogey as the max.
     # ESC is how many shots above or below par the player was for the round.
     esc_adjustment = min(54, score['scratch'] - score['amcr'])
-    # We take an additional 2 shots from the match winner, because why not.
-    if score['win'] and adjust_score_for_win:
-      esc_adjustment = esc_adjustment - 2
-
     score['esc_adjustment'] = esc_adjustment
 
     # The differential takes into account how hard the course was. Here we
