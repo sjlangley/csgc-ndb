@@ -26,9 +26,6 @@ class AddClub(webapp2.RequestHandler):
   def post(self):
     """Everything comes in via the post."""
 
-    failure_heading = None
-    failure_message = None
-
     club_name = self.request.get('clubNameInput')
 
     courses = []
@@ -117,7 +114,7 @@ class ListClub(webapp2.RequestHandler):
       'key': club.key.urlsafe(),
       'courses': self._get_courses_for_club(club.key)
     }]
-    self.response.content_type = 'application/json';
+    self.response.content_type = 'application/json'
     self.response.out.write(json.dumps(result))
 
   def _get_all_clubs(self):
@@ -130,7 +127,7 @@ class ListClub(webapp2.RequestHandler):
         'courses': self._get_courses_for_club(club.key)
       })
 
-    self.response.content_type = 'application/json';
+    self.response.content_type = 'application/json'
     self.response.out.write(json.dumps(result))
 
 
@@ -194,7 +191,7 @@ class AddMember(webapp2.RequestHandler):
       'member_keys': [key.urlsafe() for key in member_keys]
     }
 
-    self.response.content_type = 'application/json';
+    self.response.content_type = 'application/json'
     self.response.out.write(json.dumps(result))
 
 
@@ -233,7 +230,7 @@ class ListMembers(webapp2.RequestHandler):
     query = Member.query()
     result = query.map(callback)
 
-    self.response.content_type = 'application/json';
+    self.response.content_type = 'application/json'
     self.response.out.write(json.dumps(result))
 
 
@@ -256,7 +253,7 @@ class GetMember(webapp2.RequestHandler):
       'initial_handicap': member.initial_handicap,
     }
 
-    self.response.content_type = 'application/json';
+    self.response.content_type = 'application/json'
     self.response.out.write(json.dumps(result))
 
 
@@ -281,7 +278,7 @@ class GetScores(webapp2.RequestHandler):
       'wins': _get_total_wins_for_member(member.key),
     }
 
-    self.response.content_type = 'application/json';
+    self.response.content_type = 'application/json'
     self.response.out.write(json.dumps(result))
 
 
@@ -436,7 +433,7 @@ class GetMatch(webapp2.RequestHandler):
     else:
       result = self._return_match_summaries()
 
-    self.response.content_type = 'application/json';
+    self.response.content_type = 'application/json'
     self.response.out.write(json.dumps(result))
 
 
@@ -519,13 +516,12 @@ class DeleteMatch(webapp2.RequestHandler):
         result = {'error': True}
 
 
-    self.response.content_type = 'application/json';
+    self.response.content_type = 'application/json'
     self.response.out.write(json.dumps(result))
 
   def _do_match_delete(self, match_key):
     key = ndb.Key(urlsafe=match_key)
     match = key.get()
-    tee = _get_tee_by_key(match.tee)
     scores = ndb.get_multi(match.scores)
 
     keys = [s.key for s in scores]
@@ -613,8 +609,7 @@ def _get_total_wins_for_member(member_key):
   raise ndb.Return(count)
 
 
-def _get_handicap_for_member(member_key, adjust_score_for_win=True,
-  load_all_scores=True):
+def _get_handicap_for_member(member_key, adjust_score_for_win=True):
   """Get the handicap for a member."""
 
   @ndb.tasklet
@@ -654,7 +649,7 @@ def _get_handicap_for_member(member_key, adjust_score_for_win=True,
     the_rest = adj_scores[20:]
     first_twenty = sorted(first_twenty, key=itemgetter('differential'))
 
-    total = 0.0;
+    total = 0.0
     for i in xrange(count):
       total += first_twenty[i]['differential']
       first_twenty[i]['used_for_handicap'] = True
