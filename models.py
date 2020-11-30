@@ -32,6 +32,13 @@ class Member(ndb.Model):
   initial_handicap = ndb.FloatProperty()
   inactive = ndb.BooleanProperty(default=False)
 
+# Keep track of the members handicap and when it was last calculated, to
+# make is faster to lookup handicaps if they've already been calculated.
+class MemberHandicap(ndb.Model):
+  member = ndb.KeyProperty(kind=Member)
+  current_handicap = ndb.FloatProperty()
+  current_handicap_date = ndb.DateProperty()
+
 
 class Score(ndb.Model):
   member = ndb.KeyProperty(kind=Member)
