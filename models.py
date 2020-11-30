@@ -44,6 +44,7 @@ class Score(ndb.Model):
   member = ndb.KeyProperty(kind=Member)
   tee = ndb.KeyProperty(kind=Tee)
   date = ndb.DateProperty(required=True)
+  # This is the handicap that was used for this round.
   handicap = ndb.IntegerProperty()
   scratch = ndb.IntegerProperty(required=True)
   nett = ndb.IntegerProperty(required=True)

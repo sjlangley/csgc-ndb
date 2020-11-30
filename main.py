@@ -89,13 +89,10 @@ class ListMembersGeneral(webapp2.RequestHandler):
     daily_slope_rating_str = self.request.get(
         'daily_slope_rating',
         default_value=WOOLOOWARE_WHITE_SLOPE)
-    adjust_score_for_win = self.request.get('adjust_score_for_win',
-                                            default_value="True")
 
     daily_slope_rating = int(daily_slope_rating_str)
 
-    url = '%s/api/list-members?adjust_score_for_win=%s' % (
-        self.request.host_url, adjust_score_for_win)
+    url = '%s/api/list-members' % self.request.host_url
     result = urlfetch.fetch(url, follow_redirects=False,  deadline=60)
     data = json.loads(result.content)
 
