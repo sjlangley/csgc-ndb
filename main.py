@@ -21,7 +21,7 @@ JINJA_ENVIRONMENT = jinja2.Environment(
   extensions=['jinja2.ext.autoescape'],
   autoescape=True)
 
-WOOLOOWARE_WHITE_SLOPE = 124
+WOOLOOWARE_WHITE_SLOPE = 120
 
 class MainPage(webapp2.RequestHandler):
   """   """
@@ -106,6 +106,7 @@ class ListMembersGeneral(webapp2.RequestHandler):
     template_values['path_url'] = self.request.path_url
     template_values['show_pii'] = False
     template_values['daily_slope_rating'] = daily_slope_rating / float(113)
+    template_values['daily_slope'] = daily_slope_rating_str
 
     template = JINJA_ENVIRONMENT.get_template('list_members.html')
     self.response.write(template.render(template_values))
