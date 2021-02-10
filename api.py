@@ -230,6 +230,31 @@ class ListMembers(webapp2.RequestHandler):
     self.response.content_type = 'application/json'
     self.response.out.write(json.dumps(result))
 
+class ListMembersWithoutStatstics(webapp2.RequestHandler):
+  """ Faster when we just need names  """
+
+  def get(self):
+    @ndb.tasklet
+    def callback(member):
+      member_data = {
+        'key': member.key.urlsafe(),
+        'first_name': member.first_name,
+        'last_name' : member.last_name,
+        'email': member.email,
+        'member_no': member.member_no,
+        'phone_numbers': [
+          member.phone_number1,
+          member.phone_number2,
+        ],
+      }
+      raise ndb.Return(member_data)
+
+    query = Member.query()
+    result = query.map(callback)
+
+    self.response.content_type = 'application/json'
+    self.response.out.write(json.dumps(result))
+
 
 class GetMember(webapp2.RequestHandler):
 
@@ -712,6 +737,7 @@ app = webapp2.WSGIApplication([
 
   ('/api/add-members', AddMember),
   ('/api/list-members', ListMembers),
+  ('/api/list-members-without-statistics', ListMembersWithoutStatstics),
   ('/api/get-member', GetMember),
 
   ('/api/get-scores', GetScores),

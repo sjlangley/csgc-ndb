@@ -216,7 +216,7 @@ class AddMatchResult(webapp2.RequestHandler):
 
   def _phase_2(self):
     """We know the club, input the results."""
-    members_url = '%s/api/list-members' % self.request.host_url
+    members_url = '%s/api/list-members-without-statistics' % self.request.host_url
     result = urlfetch.fetch(members_url, follow_redirects=False, deadline=60)
     member_data = json.loads(result.content)
 
