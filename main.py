@@ -21,7 +21,7 @@ JINJA_ENVIRONMENT = jinja2.Environment(
   extensions=['jinja2.ext.autoescape'],
   autoescape=True)
 
-WOOLOOWARE_WHITE_SLOPE = 120
+WOOLOOWARE_WHITE_SLOPE = 118
 
 class MainPage(webapp2.RequestHandler):
   """   """
