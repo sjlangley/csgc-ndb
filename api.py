@@ -383,7 +383,7 @@ class AddMatch(webapp2.RequestHandler):
       match.closest_pin_16th = ndb.Key(urlsafe=match_result['closest_pin_16th'])
 
     if match_result['closest_pin_17th'] and match_result['closest_pin_17th'] != 'none':
-      match.closest_pin_10th = ndb.Key(urlsafe=match_result['closest_pin_17th'])
+      match.closest_pin_17th = ndb.Key(urlsafe=match_result['closest_pin_17th'])
 
     if match_result['longest_drive_0_18'] and match_result['longest_drive_0_18'] != 'none':
       match.longest_drive_0_18 = ndb.Key(urlsafe=match_result['longest_drive_0_18'])
