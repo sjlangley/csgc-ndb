@@ -1,4 +1,0 @@
-cron:
-- description: Weekly date fixing job
-  url: /tasks/fix-score-dates
-  schedule: every sunday 01:00
